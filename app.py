@@ -37,7 +37,7 @@ st.sidebar.markdown("---")
 model_options = {
     "Logistic Regression": "model/logistic.pkl",
     "Decision Tree": "model/decision_tree.pkl",
-#    "K-Nearest Neighbors": "model/knn.pkl",
+    "K-Nearest Neighbors": "model/knn.pkl",
     "Naive Bayes": "model/naive_bayes.pkl",
     "Random Forest": "model/random_forest.pkl",
     "XGBoost": "model/xgboost.pkl"
