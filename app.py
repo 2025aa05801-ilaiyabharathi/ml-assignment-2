@@ -24,7 +24,7 @@ st.set_page_config(
 )
 
 # ----------------------------
-# Paths (assumes files are in repo root)
+# Paths (files are in model/ folder)
 # ----------------------------
 MODEL_FILES = {
     "Logistic Regression": "model/logistic.pkl",
@@ -38,6 +38,7 @@ MODEL_FILES = {
 PIPELINE_FILE = "model/preprocessing_pipeline.pkl"
 COMPARISON_CSV = "model/model_comparison.csv"
 COMPARISON_PNG = "model/model_comparison.png"
+
 
 # ----------------------------
 # Helpers
@@ -76,7 +77,7 @@ def ensure_feature_order(df: pd.DataFrame, reference_cols: list[str]) -> pd.Data
 
 def plot_confusion(cm, labels=("0", "1")):
     fig, ax = plt.subplots(figsize=(4.5, 3.5))
-    im = ax.imshow(cm)
+    im = ax.imshow(cm, cmap='Blues')
     ax.set_title("Confusion Matrix")
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
@@ -86,7 +87,7 @@ def plot_confusion(cm, labels=("0", "1")):
     ax.set_yticklabels(labels)
 
     for (i, j), v in np.ndenumerate(cm):
-        ax.text(j, i, str(v), ha="center", va="center")
+        ax.text(j, i, str(v), ha="center", va="center", fontsize=14, fontweight='bold')
 
     fig.tight_layout()
     return fig
@@ -128,14 +129,14 @@ if show_comparison:
             st.info("model_comparison.csv not found in repo.")
     with colB:
         if os.path.exists(COMPARISON_PNG):
-            st.image(COMPARISON_PNG, caption="Model Performance Comparison", use_column_width=True)
+            st.image(COMPARISON_PNG, caption="Model Performance Comparison")
         else:
             st.info("model_comparison.png not found in repo.")
 
 st.markdown("---")
 
 if x_file is None:
-    st.info("Upload a test features CSV to begin.")
+    st.info("📁 Upload a test features CSV to begin.")
     st.stop()
 
 # Load data
@@ -167,27 +168,16 @@ except Exception as e:
 
 y_proba = get_proba(model, X)
 
-# Display predictions
-st.subheader("✅ Predictions")
-pred_df = pd.DataFrame({
-    "prediction": y_pred.astype(int) if np.issubdtype(np.array(y_pred).dtype, np.number) else y_pred
-})
-if y_proba is not None:
-    pred_df["probability_positive"] = y_proba
+# Show selected model name prominently
+st.header(f"🎯 Predictions with: {model_name}")
 
-st.dataframe(pred_df.head(50), use_container_width=True)
+# If labels provided, calculate and show metrics FIRST
+has_labels = y_file is not None
+y_true = None
+correct_count = 0
+wrong_count = 0
 
-# Download predictions
-csv_bytes = pred_df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    label="Download predictions as CSV",
-    data=csv_bytes,
-    file_name=f"predictions_{model_name.replace(' ', '_').lower()}.csv",
-    mime="text/csv",
-)
-
-# Metrics if labels provided
-if y_file is not None:
+if has_labels:
     y_true_df = pd.read_csv(y_file)
     # Accept first column as target
     y_true = y_true_df.iloc[:, 0].values
@@ -198,10 +188,25 @@ if y_file is not None:
     y_pred_aligned = np.array(y_pred)[:n]
     y_proba_aligned = y_proba[:n] if y_proba is not None else None
 
-    st.markdown("---")
-    st.subheader("📈 Evaluation Metrics")
+    # Calculate correct/wrong
+    correct_predictions = (y_true == y_pred_aligned)
+    correct_count = correct_predictions.sum()
+    wrong_count = n - correct_count
 
-    # Compute metrics
+    # ===== SHOW METRICS AT THE TOP =====
+    st.markdown("---")
+    st.subheader("📊 Model Performance Summary")
+    
+    # Show correct/wrong counts
+    col_summary1, col_summary2, col_summary3 = st.columns(3)
+    with col_summary1:
+        st.metric("✅ Correct Predictions", f"{correct_count:,}")
+    with col_summary2:
+        st.metric("❌ Wrong Predictions", f"{wrong_count:,}")
+    with col_summary3:
+        st.metric("📈 Total Predictions", f"{n:,}")
+
+    # Compute all metrics
     acc = accuracy_score(y_true, y_pred_aligned)
     prec = precision_score(y_true, y_pred_aligned, zero_division=0)
     rec = recall_score(y_true, y_pred_aligned, zero_division=0)
@@ -215,15 +220,59 @@ if y_file is not None:
         except Exception:
             auc = None
 
+    # Show 6 metrics in a row
     m1, m2, m3, m4, m5, m6 = st.columns(6)
-    m1.metric("Accuracy", f"{acc:.3f}")
-    m2.metric("AUC", f"{auc:.3f}" if auc is not None else "N/A")
-    m3.metric("Precision", f"{prec:.3f}")
-    m4.metric("Recall", f"{rec:.3f}")
-    m5.metric("F1", f"{f1:.3f}")
-    m6.metric("MCC", f"{mcc:.3f}")
+    m1.metric("Accuracy", f"{acc:.4f}")
+    m2.metric("AUC", f"{auc:.4f}" if auc is not None else "N/A")
+    m3.metric("Precision", f"{prec:.4f}")
+    m4.metric("Recall", f"{rec:.4f}")
+    m5.metric("F1 Score", f"{f1:.4f}")
+    m6.metric("MCC", f"{mcc:.4f}")
 
-    # Confusion matrix + report
+    st.markdown("---")
+
+# ===== PREDICTIONS TABLE =====
+st.subheader("📋 Detailed Predictions")
+
+# Build predictions dataframe
+pred_df = pd.DataFrame({
+    "Prediction": y_pred.astype(int) if np.issubdtype(np.array(y_pred).dtype, np.number) else y_pred
+})
+
+if y_proba is not None:
+    pred_df["Confidence"] = y_proba
+
+if has_labels and y_true is not None:
+    # Add actual and correctness columns
+    n = min(len(y_true), len(y_pred))
+    pred_df = pred_df.iloc[:n].copy()
+    pred_df["Actual"] = y_true[:n]
+    pred_df["Correct"] = (pred_df["Prediction"] == pred_df["Actual"]).map({True: "✅ Correct", False: "❌ Wrong"})
+    
+    # Reorder columns for better display
+    if "Confidence" in pred_df.columns:
+        pred_df = pred_df[["Prediction", "Actual", "Correct", "Confidence"]]
+    else:
+        pred_df = pred_df[["Prediction", "Actual", "Correct"]]
+
+# Show first 100 rows (or configurable)
+display_rows = st.slider("Number of rows to display", min_value=10, max_value=min(500, len(pred_df)), value=50, step=10)
+st.dataframe(pred_df.head(display_rows), use_container_width=True)
+
+# Download predictions
+csv_bytes = pred_df.to_csv(index=False).encode("utf-8")
+st.download_button(
+    label="📥 Download all predictions as CSV",
+    data=csv_bytes,
+    file_name=f"predictions_{model_name.replace(' ', '_').lower()}.csv",
+    mime="text/csv",
+)
+
+# ===== CONFUSION MATRIX & CLASSIFICATION REPORT (if labels provided) =====
+if has_labels:
+    st.markdown("---")
+    st.subheader("📊 Detailed Analysis")
+    
     c1, c2 = st.columns([1, 1.2])
     with c1:
         cm = confusion_matrix(y_true, y_pred_aligned)
@@ -232,4 +281,14 @@ if y_file is not None:
         st.text("Classification Report")
         st.code(classification_report(y_true, y_pred_aligned, digits=3), language="text")
 else:
-    st.info("Upload test labels CSV to compute metrics, confusion matrix, and classification report.")
+    st.markdown("---")
+    st.info("💡 Upload test labels CSV to see accuracy, confusion matrix, and classification report.")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: #666;'>
+    <p>Multi-Model Classification Dashboard | Adult Census Income Dataset</p>
+    <p>Built for ML Assignment 2 | M.Tech (AIML/DSE) | BITS Pilani</p>
+</div>
+""", unsafe_allow_html=True)
