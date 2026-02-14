@@ -128,7 +128,7 @@ if show_comparison:
             st.info("model_comparison.csv not found in repo.")
     with colB:
         if os.path.exists(COMPARISON_PNG):
-            st.image(COMPARISON_PNG, caption="Model Performance Comparison", use_container_width=True)
+            st.image(COMPARISON_PNG, caption="Model Performance Comparison", use_column_width=True)
         else:
             st.info("model_comparison.png not found in repo.")
 
