@@ -93,8 +93,8 @@ with st.sidebar:
     st.subheader("Upload test data")
     st.info("💡 Default test files are pre-loaded. Upload your own CSV files to override.")
     
-    x_file = st.file_uploader("Test features (CSV) - Optional", type=["csv"], key="x_upload")
-    y_file = st.file_uploader("Test labels (CSV) - Optional", type=["csv"], key="y_upload")
+    x_file = st.file_uploader("Test features (CSV)", type=["csv"], key="x_upload")
+    y_file = st.file_uploader("Test labels (CSV)", type=["csv"], key="y_upload")
 
     st.markdown("---")
     show_comparison = st.checkbox("Show model comparison chart/table", value=True)
