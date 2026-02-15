@@ -1,20 +1,20 @@
 # ML Assignment 2 - Multi-Model Classification
 
-## 📌 Problem Statement
+## Problem Statement
 
 This project implements and compares 6 different machine learning classification models on the **Adult Census Income dataset**. The goal is to predict whether an individual's annual income exceeds $50K based on demographic and employment features. The dataset contains 14 features and 30,162 instances, addressing a binary classification problem in the socioeconomic domain.
 
 ---
 
-## 📊 Dataset Description
+## Dataset Description
 
 **Dataset Name**: Adult Census Income Dataset  
 **Source**: UCI Machine Learning Repository  
 **Link**: https://archive.ics.uci.edu/ml/datasets/adult
 
 ### Dataset Characteristics:
-- **Total Instances**: 30,162 ✅ (Minimum requirement: 500)
-- **Total Features**: 14 ✅ (Minimum requirement: 12)
+- **Total Instances**: 30,162
+- **Total Features**: 14
 - **Target Variable**: Income level (0 = ≤50K, 1 = >50K)
 - **Problem Type**: Binary Classification
 - **Class Distribution**: 
@@ -40,14 +40,14 @@ This project implements and compares 6 different machine learning classification
 | native-country | Categorical | Country of origin (encoded) |
 
 ### Data Preprocessing:
-- ✅ Missing value treatment: Rows with missing values removed
-- ✅ Categorical encoding: Label encoding applied to all categorical features
-- ✅ Feature scaling: StandardScaler applied to normalize features
-- ✅ Train-Test Split: 80-20 split with stratification
+- Missing value treatment: Rows with missing values removed
+- Categorical encoding: Label encoding applied to all categorical features
+- Feature scaling: StandardScaler applied to normalize features
+- Train-Test Split: 80-20 split with stratification
 
 ---
 
-## 🤖 Models Used
+## Models Used
 
 ### Model Comparison Table
 
@@ -62,7 +62,7 @@ This project implements and compares 6 different machine learning classification
 
 ---
 
-## 📝 Model Performance Observations
+## Model Performance Observations
 
 ### Individual Model Analysis:
 
@@ -102,28 +102,26 @@ Most precise model (80%) with great accuracy (85.3%) and excellent AUC (0.914). 
 
 ---
 
-## 🚀 Live Deployment
+## Live Deployment
 
-### 🌐 Streamlit App
-**Live Link**: [Your Streamlit deployment URL will go here]  
-Example: `https://your-app-name.streamlit.app`
+### Streamlit App
+**Live Link**: https://ml-assignment-2-ilaiya.streamlit.app/
 
-### 📂 GitHub Repository
-**Repository Link**: [Your GitHub repository URL will go here]  
-Example: `https://github.com/yourusername/ml-assignment-2`
+### GitHub Repository
+**Repository Link**: https://github.com/2025aa05801-ilaiyabharathi/ml-assignment-2
 
 ### Features:
-- ✅ Interactive model selection dropdown
-- ✅ CSV file upload for test data
-- ✅ Real-time predictions with probability scores
-- ✅ Comprehensive evaluation metrics display
-- ✅ Confusion matrix visualization
-- ✅ Classification report
-- ✅ Downloadable prediction results
+- Interactive model selection dropdown
+- CSV file upload for test data
+- Real-time predictions with probability scores
+- Comprehensive evaluation metrics display
+- Confusion matrix visualization
+- Classification report
+- Downloadable prediction results
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ml-assignment-2/
@@ -149,43 +147,10 @@ ml-assignment-2/
 
 ---
 
-## 🛠️ Installation & Usage
-
-### Prerequisites
-- Python 3.8 or higher
-- pip package manager
-
-### Local Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone [your-repo-url]
-   cd ml-assignment-2
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run Streamlit app locally**
-   ```bash
-   streamlit run app.py
-   ```
-   App will open in browser at `http://localhost:8501`
-
-4. **Train models** (Optional - pre-trained models included)
-   ```bash
-   jupyter notebook model_training_ML.ipynb
-   ```
-   Run all cells to train models and generate metrics
-
----
-
-## 📊 Evaluation Metrics Explained
+## Evaluation Metrics Explained
 
 - **Accuracy**: Overall correctness of predictions
-- **AUC (Area Under ROC Curve)**: Model's ability to distinguish between classes (higher is better)
+- **AUC (Area Under ROC Curve)**: Model's ability to distinguish between classes 
 - **Precision**: When model predicts high income, how often is it correct?
 - **Recall**: Of all actual high earners, how many did the model find?
 - **F1 Score**: Harmonic mean of precision and recall (balances both)
@@ -193,43 +158,11 @@ ml-assignment-2/
 
 ---
 
-## 🎓 Assignment Details
+## Author
 
-- **Course**: Machine Learning - M.Tech (AIML/DSE)
-- **Institution**: BITS Pilani
-- **Assignment**: Assignment 2
-- **Submission Deadline**: 15 February 2026, 11:59 PM
-- **Total Marks**: 15
-  - Model Implementation & GitHub: 10 marks
-  - Streamlit App: 4 marks
-  - BITS Virtual Lab Execution: 1 mark
+**Name**: G Ilaiya Bharathi 
+**Email**: 2025aa05801@wilp.bits-pilani.ac.in
+**Student ID**: 2025aa05801
 
----
 
-## 📸 BITS Virtual Lab Execution
-
-Executed successfully in BITS Virtual Lab environment. All models trained and evaluated with results documented above.
-
----
-
-## 👨‍💻 Author
-
-**Name**: [Your Name]  
-**Email**: [Your Email]  
-**Student ID**: [Your Student ID]
-
----
-
-## 🙏 Acknowledgments
-
-- BITS Pilani Work Integrated Learning Programmes Division
-- UCI Machine Learning Repository for the Adult Census Income dataset
-- Course instructors and teaching assistants
-
----
-
-## 📞 Contact
-
-For any queries regarding this assignment:
-- Email: neha.vinayak@pilani.bits-pilani.ac.in
 - Subject: "ML Assignment 2: [Your Query]"
