@@ -167,4 +167,3 @@ ml-assignment-2/
 **Student ID**: 2025aa05801
 
 
-- Subject: "ML Assignment 2: [Your Query]"
