@@ -160,8 +160,10 @@ ml-assignment-2/
 
 ## Author
 
-**Name**: G Ilaiya Bharathi 
+**Name**: G Ilaiya Bharathi
+
 **Email**: 2025aa05801@wilp.bits-pilani.ac.in
+
 **Student ID**: 2025aa05801
 
 
