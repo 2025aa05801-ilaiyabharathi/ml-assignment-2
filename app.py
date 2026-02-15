@@ -23,9 +23,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
-
-
 MODEL_FILES = {
     "Logistic Regression": "model/logistic.pkl",
     "Decision Tree": "model/decision_tree.pkl",
@@ -39,7 +36,8 @@ PIPELINE_FILE = "model/preprocessing_pipeline.pkl"
 COMPARISON_CSV = "model/model_comparison.csv"
 COMPARISON_PNG = "model/model_comparison.png"
 
-
+DEFAULT_TEST_DATA = "model/test_data.csv"
+DEFAULT_TEST_LABELS = "model/test_labels.csv"
 
 @st.cache_resource
 def load_pipeline():
@@ -61,15 +59,6 @@ def get_proba(model, X):
         return 1 / (1 + np.exp(-scores))
     return None
 
-def ensure_feature_order(df: pd.DataFrame, reference_cols: list[str]) -> pd.DataFrame:
-    missing = [c for c in reference_cols if c not in df.columns]
-    extra = [c for c in df.columns if c not in reference_cols]
-    if missing:
-        raise ValueError(f"Missing required columns: {missing}")
-    if extra:
-        df = df.drop(columns=extra)
-    return df[reference_cols]
-
 def plot_confusion(cm, labels=("0", "1")):
     fig, ax = plt.subplots(figsize=(4.5, 3.5))
     im = ax.imshow(cm, cmap='Blues')
@@ -87,9 +76,6 @@ def plot_confusion(cm, labels=("0", "1")):
     fig.tight_layout()
     return fig
 
-
-# UI Layer...
-
 st.title("Multi-Model Classification Dashboard")
 st.markdown(
     """
@@ -105,12 +91,13 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("Upload test data")
-    x_file = st.file_uploader("Test features (CSV)", type=["csv"])
-    y_file = st.file_uploader("Test labels (optional, CSV with one column)", type=["csv"])
+    st.info("💡 Default test files are pre-loaded. Upload your own CSV files to override.")
+    
+    x_file = st.file_uploader("Test features (CSV) - Optional", type=["csv"], key="x_upload")
+    y_file = st.file_uploader("Test labels (CSV) - Optional", type=["csv"], key="y_upload")
 
     st.markdown("---")
     show_comparison = st.checkbox("Show model comparison chart/table", value=True)
-
 
 if show_comparison:
     colA, colB = st.columns([1, 1])
@@ -129,20 +116,18 @@ if show_comparison:
 
 st.markdown("---")
 
-if x_file is None:
-    st.info("📁 Upload a test features CSV to begin.")
+if x_file is not None:
+    X_raw = pd.read_csv(x_file)
+    st.success("✅ Using uploaded test features file")
+elif os.path.exists(DEFAULT_TEST_DATA):
+    X_raw = pd.read_csv(DEFAULT_TEST_DATA)
+    st.info("ℹ️ Using default test_data.csv from repository")
+else:
+    st.warning("⚠️ Please upload a test features CSV file to begin.")
     st.stop()
-
-
-X_raw = pd.read_csv(x_file)
-
-
-reference_cols = list(X_raw.columns)
-
 
 pipeline = load_pipeline()
 model = load_model(model_name)
-
 
 try:
     X = pipeline.transform(X_raw)
@@ -150,7 +135,6 @@ except Exception as e:
     st.error("Preprocessing failed. Make sure your uploaded CSV has the same feature columns and types as training.")
     st.exception(e)
     st.stop()
-
 
 try:
     y_pred = model.predict(X)
@@ -165,16 +149,23 @@ y_proba = get_proba(model, X)
 st.header(f"🎯 Predictions with: {model_name}")
 
 
-has_labels = y_file is not None
+has_labels = False
 y_true = None
 correct_count = 0
 wrong_count = 0
 
-if has_labels:
+if y_file is not None:
     y_true_df = pd.read_csv(y_file)
     y_true = y_true_df.iloc[:, 0].values
+    has_labels = True
+    st.success("✅ Using uploaded test labels file")
+elif os.path.exists(DEFAULT_TEST_LABELS):
+    y_true_df = pd.read_csv(DEFAULT_TEST_LABELS)
+    y_true = y_true_df.iloc[:, 0].values
+    has_labels = True
+    st.info("ℹ️ Using default test_labels.csv from repository")
 
-
+if has_labels:
     n = min(len(y_true), len(y_pred))
     y_true = y_true[:n]
     y_pred_aligned = np.array(y_pred)[:n]
@@ -198,6 +189,7 @@ if has_labels:
     with col_summary3:
         st.metric("Total Predictions", f"{n:,}")
 
+
     acc = accuracy_score(y_true, y_pred_aligned)
     prec = precision_score(y_true, y_pred_aligned, zero_division=0)
     rec = recall_score(y_true, y_pred_aligned, zero_division=0)
@@ -211,7 +203,7 @@ if has_labels:
         except Exception:
             auc = None
 
-
+   
     m1, m2, m3, m4, m5, m6 = st.columns(6)
     m1.metric("Accuracy", f"{acc:.4f}")
     m2.metric("AUC", f"{auc:.4f}" if auc is not None else "N/A")
@@ -236,7 +228,7 @@ if has_labels and y_true is not None:
     n = min(len(y_true), len(y_pred))
     pred_df = pred_df.iloc[:n].copy()
     pred_df["Actual"] = y_true[:n]
-    pred_df["Correct"] = (pred_df["Prediction"] == pred_df["Actual"]).map({True: "✅ Correct", False: "❌ Wrong"})
+    pred_df["Correct"] = (pred_df["Prediction"] == pred_df["Actual"]).map({True: "Correct", False: "Wrong"})
     
     if "Confidence" in pred_df.columns:
         pred_df = pred_df[["Prediction", "Actual", "Correct", "Confidence"]]
@@ -245,6 +237,7 @@ if has_labels and y_true is not None:
 
 display_rows = st.slider("Number of rows to display", min_value=10, max_value=min(500, len(pred_df)), value=50, step=10)
 st.dataframe(pred_df.head(display_rows), use_container_width=True)
+
 
 csv_bytes = pred_df.to_csv(index=False).encode("utf-8")
 st.download_button(
